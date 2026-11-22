@@ -1,170 +1,331 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>...</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Hi</title>
+<style>
+  :root {
+    --bg: #0b141a;
+    --panel: #111b21;
+    --bubble: #202c33;
+    --text: #e9edef;
+    --muted: #8696a0;
+    --accent: #00a884;
+    --blue: #53bdeb;
+    --line: rgba(255,255,255,.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    background: #060b0e;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex; justify-content: center;
+    -webkit-font-smoothing: antialiased;
+  }
 
-    body {
-      background-color: #0b141a;
-      color: #e9edef;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 24px;
-      overflow: hidden;
-    }
+  .app {
+    width: 100%; max-width: 440px; height: 100dvh;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    position: relative; overflow: hidden;
+    box-shadow: 0 0 80px rgba(0,0,0,.6);
+  }
 
-    .stage {
-      width: 100%;
-      max-width: 360px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      text-align: center;
-    }
+  /* header */
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    z-index: 2;
+  }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, #00a884, #027a63);
+    display: grid; place-items: center;
+    font-weight: 600; font-size: 1.05rem; color: #fff;
+  }
+  .who b { display: block; font-size: 1rem; font-weight: 600; letter-spacing: .1px; }
+  .who span { font-size: .78rem; color: var(--muted); }
+  .who span.on { color: var(--accent); }
 
-    .bubble {
-      background-color: #202c33;
-      color: #e9edef;
-      padding: 14px 22px;
-      border-radius: 18px;
-      font-size: 1.05rem;
-      line-height: 1.4;
-      cursor: pointer;
-      user-select: none;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-      transition: opacity 0.35s ease, transform 0.35s ease, background-color 0.2s ease;
-    }
+  /* chat */
+  #chat {
+    flex: 1; overflow-y: auto; scroll-behavior: smooth;
+    padding: 18px 14px 12px;
+    display: flex; flex-direction: column; gap: 6px;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(0,168,132,.06), transparent 45%),
+      radial-gradient(circle at 80% 90%, rgba(83,189,235,.05), transparent 45%),
+      var(--bg);
+    transition: background-color .8s ease;
+  }
+  #chat::-webkit-scrollbar { width: 0; }
 
-    .bubble:active {
-      transform: scale(0.96);
-    }
+  .msg {
+    max-width: 82%;
+    background: var(--bubble);
+    padding: 9px 13px;
+    border-radius: 4px 14px 14px 14px;
+    font-size: .98rem; line-height: 1.42;
+    box-shadow: 0 1px 1px rgba(0,0,0,.25);
+    animation: in .28s ease both;
+    word-wrap: break-word;
+  }
+  .msg.first { margin-top: 8px; }
+  .msg.media { padding: 4px; }
+  .msg.wide { width: 82%; }
+  .msg small { color: var(--muted); font-size: .8rem; }
+  .msg.punch { font-size: 1.35rem; font-weight: 700; background: #005c4b; }
+  .msg.quiet { color: var(--muted); font-size: .88rem; background: transparent; box-shadow: none; padding-left: 4px; }
 
-    .bubble.hi {
-      background-color: #005c4b;
-      font-size: 1.4rem;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      padding: 16px 32px;
-      cursor: default;
-      margin-bottom: 12px;
-    }
+  @keyframes in { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
 
-    .reply-option {
-      background-color: #202c33;
-      color: #53bdeb;
-      width: 100%;
-      padding: 14px 20px;
-      border-radius: 14px;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      border: 1px solid rgba(83, 189, 235, 0.25);
-      transition: transform 0.2s ease, background-color 0.2s ease, opacity 0.4s ease;
-    }
+  .typing { display: inline-flex; gap: 4px; padding: 13px 15px; background: var(--bubble); border-radius: 4px 14px 14px 14px; width: fit-content; animation: in .2s ease both; }
+  .typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: blink 1.1s infinite ease-in-out; }
+  .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+  @keyframes blink { 0%, 60%, 100% { opacity: .3; transform: none; } 30% { opacity: 1; transform: translateY(-3px); } }
 
-    .reply-option:hover, .reply-option:active {
-      background-color: #2a3942;
-      transform: scale(0.98);
-    }
+  /* media */
+  .photo { display: block; width: 100%; border-radius: 10px; }
+  .photo-fallback { display: grid; place-items: center; height: 180px; font-size: 5rem; background: #2a3942; border-radius: 10px; }
 
-    .hint {
-      margin-top: 14px;
-      font-size: 0.78rem;
-      color: #8696a0;
-      letter-spacing: 0.3px;
-      transition: opacity 0.3s ease;
-    }
+  .loader { height: 6px; background: #0b141a; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .loader div { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--blue)); border-radius: 4px; transition: width .5s ease; }
 
-    .hidden {
-      opacity: 0;
-      transform: translateY(-8px) scale(0.95);
-      pointer-events: none;
-    }
-  </style>
+  .player { position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 10px; overflow: hidden; background: #000; }
+  .player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+  .btn {
+    display: inline-block; text-align: center;
+    padding: 11px 18px; border-radius: 22px;
+    background: var(--accent); color: #04130f; font-weight: 600; font-size: .95rem;
+    text-decoration: none; border: 0; cursor: pointer; font-family: inherit;
+    transition: transform .15s ease, filter .15s ease;
+  }
+  .btn:active { transform: scale(.96); filter: brightness(.92); }
+  .btn.ghost { background: transparent; color: var(--blue); border: 1px solid rgba(83,189,235,.35); }
+  .btn.full { display: block; width: 100%; margin-top: 8px; }
+
+  /* footer tray */
+  .tray {
+    padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+    text-align: center; min-height: 56px;
+    display: flex; flex-direction: column; justify-content: center; gap: 8px;
+  }
+  .tray .hint { color: var(--muted); font-size: .8rem; letter-spacing: .3px; opacity: 0; transition: opacity .3s ease; }
+  .tray .hint.on { opacity: 1; animation: pulse 1.8s infinite ease-in-out; }
+  @keyframes pulse { 50% { opacity: .45; } }
+  .replies { display: flex; flex-direction: column; gap: 8px; }
+
+  /* tadaaa overlay */
+  .fx {
+    position: absolute; inset: 0; z-index: 10;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, #1b0b3a, #7a1f5c, #ff6b35);
+    background-size: 200% 200%;
+    opacity: 0; pointer-events: none;
+    transition: opacity .45s ease;
+  }
+  .fx.on { opacity: 1; animation: sweep 1.8s ease both; }
+  .fx span { font-size: 2.1rem; font-weight: 800; letter-spacing: .5px; animation: boom 1.2s cubic-bezier(.2,.9,.3,1.25) both; }
+  @keyframes sweep { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
+  @keyframes boom { 0% { transform: scale(.2); opacity: 0; } 55% { transform: scale(1.4); opacity: 1; } 100% { transform: scale(1); } }
+
+  @media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+</style>
 </head>
 <body>
+<div class="app">
+  <header>
+    <div class="avatar" id="avatar">S</div>
+    <div class="who"><b id="sender">Soumik</b><span id="status">tap below to start</span></div>
+  </header>
 
-  <div class="stage" id="stage">
-    <div class="bubble" id="activeBubble" onclick="nextStep()">knock knock</div>
-    <div class="hint" id="hint">tap to open</div>
+  <main id="chat"></main>
+
+  <div class="tray">
+    <div class="replies" id="replies"></div>
+    <div class="hint" id="hint">Tap anywhere to continue</div>
   </div>
 
-  <script>
-    // REPLACE WITH YOUR WHATSAPP NUMBER (Country code + 10-digit number, no '+' or spaces)
-    const PHONE_NUMBER = "919876543210";
+  <div class="fx" id="fx"><span>tadaaaaaa</span></div>
+</div>
 
-    let step = 0;
-    const stage = document.getElementById("stage");
-    const bubble = document.getElementById("activeBubble");
-    const hint = document.getElementById("hint");
+<script>
+  // ============ EDIT THESE ============
+  const SENDER = "Soumik";                        // name shown in the header
+  const PHONE_NUMBER = "919876543210";            // country code + number, no '+' or spaces
+  const PIZZA_IMG = "pizza.jpg";                  // keep this file next to hi.html
+  const SONG_URL = "https://www.youtube.com/watch?v=lnmFJw8g8lc";
+  // ====================================
 
-    function nextStep() {
-      if (step === 0) {
-        step = 1;
-        swapText("just checking if it works");
-      } else if (step === 1) {
-        step = 2;
-        swapText("HI", true);
+  const $ = s => document.querySelector(s);
+  const chat = $("#chat"), hint = $("#hint"), status = $("#status"), replies = $("#replies");
+  $("#sender").textContent = SENDER;
+  $("#avatar").textContent = SENDER.trim().charAt(0).toUpperCase();
+
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const scroll = () => { chat.scrollTop = chat.scrollHeight; };
+
+  function add(html, cls = "") {
+    const d = document.createElement("div");
+    d.className = "msg " + cls;
+    d.innerHTML = html;
+    chat.appendChild(d); scroll();
+    return d;
+  }
+
+  // shows typing dots, then the message
+  async function say(html, cls = "", delay) {
+    status.textContent = "typing…"; status.className = "on";
+    const t = document.createElement("div");
+    t.className = "typing"; t.innerHTML = "<i></i><i></i><i></i>";
+    chat.appendChild(t); scroll();
+    const plain = html.replace(/<[^>]+>/g, "");
+    await wait(delay ?? Math.min(1300, 450 + plain.length * 14));
+    t.remove();
+    status.textContent = "online"; status.className = "";
+    return add(html, cls);
+  }
+
+  // waits for a tap on empty space (not on buttons/links)
+  async function tap(label = "Tap anywhere to continue") {
+    hint.textContent = label; hint.classList.add("on");
+    await wait(200);
+    await new Promise(res => {
+      const h = e => {
+        if (e.target.closest("a, button")) return;
+        document.removeEventListener("click", h);
+        res();
+      };
+      document.addEventListener("click", h);
+    });
+    hint.classList.remove("on");
+  }
+
+  const videoId = (SONG_URL.match(/[?&]v=([^&]+)/) || [])[1];
+
+  const scenes = [
+    async () => {
+      await say("Hello...... Just checking something......");
+      await say("“okkeeeiii”", "", 700);
+    },
+    async () => {
+      await say("Wait. Before you click away......");
+      await say("I have been working on this, so check this out....okaayy");
+    },
+    async () => {
+      await say("Btw full disclosure: this is mostly vibe-coded because I forgot 90% of my HTML and CSS.");
+      await say("Still remembered enough debugging to keep it from crashing, though....hehehe");
+      await say("Anyway, watch this....", "", 700);
+    },
+    async () => {
+      await say("This is actually pretty fun becauseeeee a normal text can’t do this...");
+      await wait(500);
+      const fx = $("#fx");
+      fx.classList.add("on");
+      await wait(1900);
+      fx.classList.remove("on");
+      await wait(500);
+      await say("Hold on. Let me calibrate the algorithm.....");
+      await say("<small>(performance anxiety ig...hehe)</small>", "quiet", 600);
+      const m = add(`<span id="lbl">Scanning brainwaves... 0%</span><div class="loader"><div id="bar"></div></div>`, "wide");
+      for (const p of [12, 37, 64, 81, 99]) {
+        $("#bar").style.width = p + "%";
+        $("#lbl").textContent = `Scanning brainwaves... ${p}%`;
+        await wait(p === 64 ? 1300 : 750);
       }
-    }
-
-    function swapText(newText, isFinal = false) {
-      bubble.classList.add("hidden");
-      hint.classList.add("hidden");
-
-      setTimeout(() => {
-        bubble.textContent = newText;
-
-        if (isFinal) {
-          bubble.classList.add("hi");
-          bubble.onclick = null;
-          bubble.classList.remove("hidden");
-
-          setTimeout(() => {
-            showReplyOptions();
-          }, 450);
-        } else {
-          bubble.classList.remove("hidden");
-          hint.textContent = "tap again";
-          hint.classList.remove("hidden");
-        }
-      }, 360);
-    }
-
-    function showReplyOptions() {
-      const replies = ["so did it work ?", "did I get a reply ?"];
-
-      replies.forEach((text, index) => {
-        const btn = document.createElement("div");
-        btn.className = "reply-option hidden";
-        btn.textContent = text;
-        btn.onclick = () => sendToWhatsApp(text);
-        stage.appendChild(btn);
-
-        setTimeout(() => {
-          btn.classList.remove("hidden");
-        }, 120 * (index + 1));
+      await wait(500);
+      await say("Okay, I know what you’re thinking right now !!");
+    },
+    async () => {
+      const m = add(`<img class="photo" src="${PIZZA_IMG}" alt="Cheesy pizza">`, "media");
+      m.querySelector("img").onerror = e => { e.target.outerHTML = '<div class="photo-fallback">🍕</div>'; };
+      await wait(900);
+      await say("See? Made you hungry, didn’t it? Don’t lie.");
+      await say("Round 1 ends !", "punch", 700);
+    },
+    async () => {
+      await say("Alright now... round two.");
+      await say("Let the magician focus...", "", 800);
+    },
+    async () => {
+      await say("Today I have to head back to Kolkata, and honestly... ughhhhhh.");
+      await say("Massive tragedy. Tragic commute. 10/10 pain. 0 star review......");
+    },
+    async () => {
+      await say("But at least I get to play my guitar again 🎸 so I guess it’s gonna be fun...");
+      await say("learning some new songs, let’s see how that goes though");
+    },
+    async () => {
+      await say("Speaking of music, you won’t believe the song I’ve been listening to on repeat nowadays....");
+      await say("Take a wild guess.", "punch", 800);
+      await say("Seriously, lock your answer in your head right now. And take a guess... or else it’s no fun !!!");
+      const card = add(`<button class="btn full" id="reveal" disabled>Locking in your guess… 3</button>`, "wide");
+      const b = $("#reveal");
+      for (let n = 2; n >= 1; n--) { await wait(1000); b.textContent = `Locking in your guess… ${n}`; }
+      await wait(1000);
+      b.disabled = false; b.textContent = "Tap to see if you’re right";
+      await new Promise(res => { b.onclick = res; });
+      // this tap is the user gesture that lets the video autoplay
+      card.classList.add("media");
+      card.innerHTML = `<div class="player"><iframe
+          src="https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0"
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+          referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`;
+      scroll();
+      await wait(600);
+      add(`<a class="btn ghost full" href="${SONG_URL}" target="_blank" rel="noopener">Video not playing? Open on YouTube</a>`, "wide");
+    },
+    async () => {
+      await say("...Did you guess it?");
+      await say("You’re gonna have to text me what you guessed so I can tell you if you win.");
+    },
+    async () => {
+      await say("Now, the Magician must reveal the actual reason I built this entire website ehe....");
+      await say("Brace yourself. The stakes are dangerously high lolllll", "", 900);
+    },
+    async () => {
+      await say("Okay so here’s the truth: I really don’t like texting “Hi”.");
+    },
+    async () => {
+      await say("Think about it. “Hi” is a high-stakes message. It sits there looking all stiff and serious. Zero personality. Maximum pressure.....");
+      await say("and I am hella whimsical.....idk if it’s bad or good idk.....");
+    },
+    async () => {
+      await say("I hate the super serious tone, but I still wanted to say Hi somehow...");
+      await say("So socha lemme do some stupidity and code an entire website instead lol.");
+    },
+    async () => {
+      await say("Mission accomplished.");
+      await wait(500);
+      await say("Anyway", "quiet", 500);
+      await say("Hiiiiiiiiiiiiiiii.....", "punch", 1000);
+      await say("Hope you’re having a good day :)");
+      await wait(500);
+      ["so did it work ?", "did I get a reply ?"].forEach(t => {
+        const a = document.createElement("a");
+        a.className = "btn ghost"; a.textContent = t;
+        a.href = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(t)}`;
+        replies.appendChild(a);
       });
+      status.textContent = "online";
     }
+  ];
 
-    function sendToWhatsApp(message) {
-      const encoded = encodeURIComponent(message);
-      window.location.href = `https://wa.me/${PHONE_NUMBER}?text=${encoded}`;
+  (async () => {
+    await tap("Tap anywhere to start");
+    status.textContent = "online";
+    for (let i = 0; i < scenes.length; i++) {
+      await scenes[i]();
+      if (i < scenes.length - 1) await tap();
     }
-  </script>
+  })();
+</script>
 </body>
 </html>
