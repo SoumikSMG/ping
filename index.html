@@ -244,7 +244,7 @@
       await say("Okay, I know what you’re thinking right now !!");
     },
     async () => {
-      const m = add(`<img class="photo" src="${PIZZA_IMG}" alt="Cheesy pizza">`, "media");
+      const m = add(`<img class="photo" src="${images.jpeg}" alt="Cheesy pizza">`, "media");
       m.querySelector("img").onerror = e => { e.target.outerHTML = '<div class="photo-fallback">🍕</div>'; };
       await wait(900);
       await say("See? Made you hungry, didn’t it? Don’t lie.");
